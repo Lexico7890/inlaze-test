@@ -1,7 +1,10 @@
 import { CampaignStatus } from "./types";
 
 export function evaluateCampaignStatus(metric: number): CampaignStatus {
-    if (metric < 6.0) return "critical";
-    if (metric < 7.0) return "warning";
+    const criticalThreshold = parseFloat(process.env.THRESHOLD_CRITICAL || "1.0");
+    const warningThreshold = parseFloat(process.env.THRESHOLD_WARNING || "2.5");
+
+    if (metric < criticalThreshold) return "critical";
+    if (metric < warningThreshold) return "warning";
     return "ok";
 }

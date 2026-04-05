@@ -2,15 +2,17 @@ import axios from 'axios';
 import { CampaignReport } from '../domain/types';
 import { evaluateCampaignStatus } from '../domain/thresholds';
 
-interface TMDBMovie {
-    id: number;
-    title: string;
-    vote_average: number;
-}
+import { z } from 'zod';
 
-interface TMDBResponse {
-    results: TMDBMovie[];
-}
+const TMDBMovieSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    vote_average: z.number(),
+}).passthrough();
+
+const TMDBResponseSchema = z.object({
+    results: z.array(TMDBMovieSchema),
+});
 
 export async function fetchMoviesAsCampaigns(retries = 3, delay = 1000): Promise<CampaignReport[]> {
     const accountId = process.env.TMDB_ACCOUNT_ID;
@@ -23,24 +25,20 @@ export async function fetchMoviesAsCampaigns(retries = 3, delay = 1000): Promise
     const url = `https://api.themoviedb.org/3/movie/popular?language=en-US&page=1`;
 
     try {
-        const response = await axios.get<TMDBResponse>(url, {
+        const response = await axios.get(url, {
             headers: {
                 accept: 'application/json',
                 Authorization: `Bearer ${token}`
             }
         });
-        console.log(response.data)
-        const movies = response.data.results;
-
-
-        if (!Array.isArray(movies)) {
-            throw new Error("Invalid payload structure: 'results' is not an array.");
+        const parseResult = TMDBResponseSchema.safeParse(response.data);
+        if (!parseResult.success) {
+            throw new Error(`Invalid payload structure from TMDB: ${parseResult.error.message}`);
         }
 
-        return movies.map(movie => {
-            if (movie.id === undefined || !movie.title || movie.vote_average === undefined) {
-                console.warn(`Missing data for movie ID: ${movie.id}. Skipping or mapping with defaults.`);
-            }
+        const movies = parseResult.data.results;
+
+        return movies.map((movie: z.infer<typeof TMDBMovieSchema>) => {
 
             const metric = movie.vote_average;
             return {

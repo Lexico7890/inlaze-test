@@ -3,6 +3,7 @@ import { fetchMoviesAsCampaigns } from './adapters/TmdbStoreApi';
 import { saveReportsToFile } from './utils/fileStorage';
 import { sendToN8N } from './adapters/n8nWebhook';
 import { generateCampaignSummary } from './adapters/openRouterApi';
+import cron from 'node-cron';
 
 dotenv.config();
 
@@ -23,8 +24,14 @@ async function runSystem() {
         console.log("Process completed successfully.");
     } catch (error: any) {
         console.error("Critical error in system execution:", error.message);
-        process.exit(1);
     }
 }
 
+console.log("Initializing Inlaze-test worker...");
+cron.schedule('*/5 * * * *', () => {
+    console.log(`[${new Date().toISOString()}] Cron triggered.`);
+    runSystem();
+});
+
+console.log("Triggering initial execution...");
 runSystem();

@@ -5,11 +5,18 @@
     "version": "1.0.0",
     "main": "pathToMain",
     "scripts": {
-        "start": "ts-node src/index.ts"
+        "dev": "ts-node src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "test": "jest"
     },
     "devDependencies": {
+        "@types/jest": "^30.0.0",
         "@types/node": "^20.12.12",
+        "@types/node-cron": "^3.0.11",
+        "jest": "^30.3.0",
         "prisma": "^6.6.0",
+        "ts-jest": "^29.4.9",
         "ts-node": "^10.9.2",
         "typescript": "^5.4.5"
     },
@@ -18,6 +25,8 @@
         "axios": "^1.13.2",
         "dotenv": "^17.2.3",
         "fs": "^0.0.1-security",
-        "path": "^0.12.7"
+        "node-cron": "^4.2.1",
+        "path": "^0.12.7",
+        "zod": "^4.3.6"
     }
 }

@@ -1,0 +1,230 @@
+{
+  "name": "Inlaze-test-flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b9bd71e0-d56d-4170-8b37-791fee7764d5",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b86f3446-212b-40f5-a36a-89896094a34c",
+      "name": "Webhook",
+      "webhookId": "b9bd71e0-d56d-4170-8b37-791fee7764d5"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.campaigns",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "723701e4-75d3-41c0-94d1-9752af3d6d85",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "cc0824ed-3a2e-4583-bd46-e20014ce38c0"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ab50ede1-721f-40aa-b27e-43a3b3163d92",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "warning",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8aa049e3-3477-4c4f-b347-715ac260d530",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=🚨 ALERTA CRÍTICA: La campaña {{$json.name}} tiene una métrica muy baja ({{$json.metric}}). ¡Revisar inmediatamente!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "2e16a282-8666-4717-ad91-d4631d4203d1",
+      "name": "Discord",
+      "webhookId": "031688cb-5711-4c76-9b0a-613ee8e3da23",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "kj7cfXyXg0ewURdW",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jsonplaceholder.typicode.com/posts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"campana\": \"{{$json.name}}\", \"metrica\": {{$json.metric}} }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        96
+      ],
+      "id": "6bfcab5d-a631-4933-b1bc-998fe9eab3d8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        224
+      ],
+      "id": "c88fb630-8678-4432-98a1-a3a313e95cb9",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"mensaje\": \"El flujo principal falló\", \"detalleError\": \"{{ $json.error.message }}\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        336,
+        224
+      ],
+      "id": "b165b67e-d7e8-4fb5-9c31-c89ff4e40fa7",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "80acb029-d4ae-423c-80eb-f135a143b1cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c1146276edc8457e09bae763d72a79d39ffe7b27840fb8abafa0a3d7d3d72eef"
+  },
+  "id": "cBMOjMJ6ki1wbLYg",
+  "tags": []
+}

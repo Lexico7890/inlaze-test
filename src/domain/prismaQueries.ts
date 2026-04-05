@@ -27,7 +27,7 @@ export async function getWorstRoasCampaignsByOperator(): Promise<GroupedOperator
         },
     });
 
-    const campaignIds = aggregatedMetrics.map(m => m.campaignId);
+    const campaignIds = aggregatedMetrics.map((m: any) => m.campaignId);
 
     const campaignsData = await prisma.campaign.findMany({
         where: { id: { in: campaignIds } },
@@ -36,7 +36,7 @@ export async function getWorstRoasCampaignsByOperator(): Promise<GroupedOperator
 
     const groupedResult: Record<string, GroupedOperatorRoas> = {};
     for (const metric of aggregatedMetrics) {
-        const campaignDetail = campaignsData.find(c => c.id === metric.campaignId);
+        const campaignDetail = campaignsData.find((c: any) => c.id === metric.campaignId);
         if (!campaignDetail || metric._avg.roas === null) continue;
 
         const opId = campaignDetail.operatorId;
